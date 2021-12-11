@@ -8,8 +8,9 @@ resource system.
 ## Getting started
 
 1. Install the module with PIP
-2. Create some models, suppose you have Book model
-3. Create a View sublcassing WebSheetsView
+2. Create some models, we use the Book / Category / Author model 
+   from (Django Import Export Documentation](https://django-import-export.readthedocs.io/en/stable/getting_started.html)
+3. Create a View sublcassing `websheets.views.WebSheetsView`
 
 ```python
 from websheets.views import WebSheetView
