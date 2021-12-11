@@ -1,4 +1,4 @@
-
+1
 
 function parseCSV(csv) {
     var records = CSV.parse(csv, {header: false});
@@ -18,10 +18,16 @@ function parseCSV(csv) {
 }
 
 function loadData(xs, csvdatajson) {
-    var data=[]
+    var data=[];
 
     for(var key in csvdatajson) {
-        data.push({name: key, rows: parseCSV(csvdatajson[key])})
+        data.push({
+            name: key, 
+            styles: [
+                {color: '#ff0000', textwrap: true} //Validation erros style
+            ],
+            rows: parseCSV(csvdatajson[key])
+        });
     }
     
     xs.loadData(data);
@@ -32,7 +38,7 @@ function postData(params){
     // Turn the data object into an array of URL-encoded key/value pairs.
     let urlEncodedData = "", urlEncodedDataPairs = [], name;
     for( name in params ) {
-     urlEncodedDataPairs.push(encodeURIComponent(name)+'='+encodeURIComponent(params[name]));
+     urlEncodedDataPairs.push(encodeURIComponent(name)+'='+encodeURIComponent(params[name]['data']));
     }
     
     var http = new XMLHttpRequest();
@@ -51,6 +57,18 @@ function postData(params){
                 //TODO: better rendendering of validation errors
                 errors=JSON.parse(http.responseText);
                 console.log(errors);
+                for(var sheet in errors) {
+                    var sheetIndex=0; //!?
+                    w=params[sheet]['width']
+                    xs.cellText(0,w,'Validation Errors',sheetIndex)
+                    xs.cell(0,w,sheetIndex).style=0;
+                    
+                    for(var row in errors[sheet]) {
+                        xs.cellText(row,w,errors[sheet][row].join('\r\n'),sheetIndex)
+                        xs.cell(row,w,sheetIndex).style=0;
+                    }
+                }
+                xs.reRender();
             }
         }
     }
@@ -68,15 +86,28 @@ function serialize(xsdata) {
             records[ri]=row;
             var cells=s.rows[ri].cells
             for(var ci in cells) {
-                row[ci]=cells[ci]['text'];
+                if(cells[ci].style == 0) {
+                    xs.cellText(ri,ci,'',si);
+                    continue;
+                }
+                row[ci]=cells[ci].text;
             }
             for(var i=0; i < row.length; i++) 
                 if(row[i]===undefined) row[i]=''
         }
-        for(var i=0; i < records.length; i++) 
+        
+        var w=0;
+        
+        for(var i=0; i < records.length; i++) {
             if(records[i]===undefined) records[i]=[]
+            l=records[i].length
+            if(l > w) w=l;
+        }
             
-        ret[s['name']]=CSV.serialize(records);
+        ret[s['name']]={
+            data:CSV.serialize(records),
+            width: w
+        }
     }
     return ret;
 }
@@ -102,7 +133,9 @@ if(allowSave) {
           icon: saveIcon,
           onClick: (data, sheet) => {
             console.log('click save button：', data, sheet)
-            postData(serialize(xs.getData()));
+            var xsdata=xs.getData();
+            postData(serialize(xsdata));
+
           }
         }
     );
