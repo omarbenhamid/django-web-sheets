@@ -13,6 +13,9 @@ class WebSheetView(TemplateView):
     sheet_resource_classes=[] #List of class or tuple ("sheetName","class")
     allow_save=True
     
+    def get_allow_save(self):
+        return self.allow_save
+    
     def get_sheet_resource_classes(self):
         """ Return a list, each item can be :
          a resource class
@@ -25,6 +28,12 @@ class WebSheetView(TemplateView):
     def get_queryset(self, sheetname, resource):
         return resource.get_queryset()
     
+    def get_resource_for_new_sheet(self, sheetname):
+        """ Called when a new sheet is encountred in import 
+        must return the resource instance for this new shset or None if
+        creation is not supported
+        """
+        return None
     @cached_property
     def _sheet_resources(self):
         ret=OrderedDict()
@@ -48,33 +57,44 @@ class WebSheetView(TemplateView):
             
         return ret
 
-    def _get_sheets_json(self):
-        return OrderedDict((name, res.export().csv)
-                for name, res in self._sheet_resources.items())
+    def _get_sheets_json(self, sheet_resources=None):
+        if not sheet_resources: sheet_resources=self._sheet_resources
+        return OrderedDict((name, res.export(self.get_queryset(name, res)).csv)
+                for name, res in sheet_resources.items())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         #FixME: support multisheet (one qs per sheet)
         context['json'] = json.dumps(self._get_sheets_json())
-        context['allow_save'] = "true" if self.allow_save else "false";
+        context['allow_save'] = "true" if self.get_allow_save() else "false";
         return context
 
     def post(self, *args, **kwargs):
-        if not self.allow_save:
+        if not self.get_allow_save():
             return HttpResponseNotAllowed(['GET'])
 
         errors={}
+        sheet_resources=dict(self._sheet_resources)
         for k,v in self.request.POST.items():
-            res=self._sheet_resources[k]
+            res=sheet_resources.get(k,None)
+            if not res:
+                res=self.get_resource_for_new_sheet(k)
+                if not res: 
+                    errors[k]={1:["Unknown sheet %s" % k]}
+                    continue
+                else:
+                    sheet_resources[k]=res
+                
             ds=tablib.import_set(v, format='csv')
             result=res.import_data(ds, dry_run=True)
             if result.has_errors():
-                if result.base_errors:
-                    raise Exception("Internal errors during import")
                 if k not in errors:
                     errors[k]={}
-
+                    
+                if result.base_errors:
+                    errors[k][1]=["Internal base errors"]
+                
                 for rownum, errs in result.row_errors():
                     if rownum not in errors[k]: errors[k][rownum]=[]
                     for e in errs:
@@ -86,9 +106,9 @@ class WebSheetView(TemplateView):
         if not errors:
             for k,v in self.request.POST.items():
                 ds=tablib.import_set(v, format='csv')
-                self._sheet_resources[k].import_data(ds, dry_run=False)
+                sheet_resources[k].import_data(ds, dry_run=False)
             
-            return JsonResponse(self._get_sheets_json())
+            return JsonResponse(self._get_sheets_json(sheet_resources))
         else:
             return JsonResponse(errors, status=500)
 

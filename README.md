@@ -8,6 +8,15 @@ resource system.
 ## Getting started
 
 1. Install the module with PIP
+2. Insure you add 'websheets' to your settings.py :
+```python
+INSTALLED_APPS = [
+    ...
+    'websheets',
+    ...
+]
+
+```
 2. Create some models, we use the Book / Category / Author model 
    from (Django Import Export Documentation](https://django-import-export.readthedocs.io/en/stable/getting_started.html)
 3. Create a View sublcassing `websheets.views.WebSheetsView`
