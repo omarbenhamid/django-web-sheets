@@ -22,6 +22,7 @@ function loadData(xs, csvdatajson) {
     var data=[];
 
     for(var key in csvdatajson) {
+        var records=parseCSV(csvdatajson[key]);
         var sheet={
             name: key, 
             styles: [
@@ -40,11 +41,16 @@ function loadData(xs, csvdatajson) {
                     "align": "center"
                 }, //Title Stype
             ],
-            rows: parseCSV(csvdatajson[key]),
+            rows: records,
             cols: {}
         }
-        if(hideFirstCol){
-            sheet.cols[0]={'hide':true}
+        if(hideIdCol){
+            for(ci in records[0].cells) {
+                if(records[0].cells[ci].text == 'id') {
+                    sheet.cols[ci]={'hide':true};
+                    break;
+                }
+            }
         }
         data.push(sheet);
     }

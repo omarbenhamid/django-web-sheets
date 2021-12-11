@@ -12,7 +12,7 @@ class WebSheetView(TemplateView):
     template_name="websheets/spreadsheet.html"
     sheet_resource_classes=[] #List of class or tuple ("sheetName","class")
     allow_save=True
-    hide_first_col=False #Usually the id col
+    hide_id_col=False #Hide or keep id visible
     
     def get_allow_save(self):
         return self.allow_save
@@ -69,7 +69,7 @@ class WebSheetView(TemplateView):
         #FixME: support multisheet (one qs per sheet)
         context['json'] = json.dumps(self._get_sheets_json())
         context['allow_save'] = "true" if self.get_allow_save() else "false";
-        context['hide_first_col'] = "true" if self.hide_first_col else "false";
+        context['hide_id_col'] = "true" if self.hide_id_col else "false";
         return context
 
     def post(self, *args, **kwargs):
