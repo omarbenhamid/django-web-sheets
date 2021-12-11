@@ -14,6 +14,12 @@ class WebSheetView(TemplateView):
     allow_save=True
     
     def get_sheet_resource_classes(self):
+        """ Return a list, each item can be :
+         a resource class
+         a resource instance
+         a tuple (Sheet title, resource class)
+         a tuple (Sheet title, resource instance)
+        """
         return self.sheet_resource_classes
     
     def get_queryset(self, sheetname, resource):
@@ -23,13 +29,23 @@ class WebSheetView(TemplateView):
     def _sheet_resources(self):
         ret=OrderedDict()
         for rc in self.get_sheet_resource_classes():
-            if isclass(rc) and issubclass(rc, Resource): #This is a resource class
-                ret[rc.__name__]=rc()
             if hasattr(rc, '__len__') and len(rc) == 2:
                 n,c=rc
-                ret[n]=c()
             else:
-                raise Exception("sheet_resource_classes can be either a Resource class or (name,ResourceClass) tuple")
+                n=None
+                c=rc
+            
+            if isclass(c) and issubclass(c, Resource): #This is a resource class
+                if not n: 
+                    n=c.__name__
+                c=c()
+            elif isinstance(c, Resource):
+                if not n: 
+                    n=c.__class__.__name__
+            else:
+                raise Exception("sheet_resource_classes can be either a Resource class or instance or (name,ResourceClass or instance) tuple")
+            ret[n]=c
+            
         return ret
 
     def _get_sheets_json(self):
