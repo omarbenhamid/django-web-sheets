@@ -10,7 +10,8 @@ function parseCSV(csv) {
         var cells={}
 
         for (var j=0; j<data.length; j++) {
-            cells[j]={text: data[j]}
+            if(i==0) cells[j]={text: data[j], style: 1}; //Title style
+            else cells[j]={text: data[j]};
         }
         ret[i]={cells: cells}
     }
@@ -24,7 +25,20 @@ function loadData(xs, csvdatajson) {
         var sheet={
             name: key, 
             styles: [
-                {color: '#ff0000', textwrap: true} //Validation erros style
+                {color: '#ff0000', textwrap: true}, //Validation erros style
+                {
+                    "font": {
+                        "bold": true,
+                        "italic": true
+                    },
+                    "border": {
+                        "bottom": [
+                            "thin",
+                            "#000"
+                        ]
+                    },
+                    "align": "center"
+                }, //Title Stype
             ],
             rows: parseCSV(csvdatajson[key]),
             cols: {}
