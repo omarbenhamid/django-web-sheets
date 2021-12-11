@@ -39,7 +39,11 @@ class WebSheetView(TemplateView):
 
                 for rownum, errs in result.row_errors():
                     if rownum not in errors[k]: errors[k][rownum]=[]
-                    errors[k][rownum].extend(str(e.error) for e in errs)
+                    for e in errs:
+                        if hasattr(e.error, '__iter__'):
+                            errors[k][rownum].extend(str(p) for p in e.error)
+                        else:
+                            errors[k][rownum].append(str(e.error))
 
         if not errors:
             for k,v in self.request.POST.items():
