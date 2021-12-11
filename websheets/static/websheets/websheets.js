@@ -21,13 +21,18 @@ function loadData(xs, csvdatajson) {
     var data=[];
 
     for(var key in csvdatajson) {
-        data.push({
+        var sheet={
             name: key, 
             styles: [
                 {color: '#ff0000', textwrap: true} //Validation erros style
             ],
-            rows: parseCSV(csvdatajson[key])
-        });
+            rows: parseCSV(csvdatajson[key]),
+            cols: {}
+        }
+        if(hideFirstCol){
+            sheet.cols[0]={'hide':true}
+        }
+        data.push(sheet);
     }
     
     xs.loadData(data);
