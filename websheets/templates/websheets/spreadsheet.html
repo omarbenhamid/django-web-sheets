@@ -6,6 +6,8 @@
         <script src="{% static 'websheets/csvjs/csv.min.js' %}"></script>
         <script>
            const csvdata = {{ json | safe }}; {# FIXME escape <, > and & #}
+           const allowSave = {{ allow_save }};
+           const csrf_token="{{ csrf_token }}";
         </script>
     </head>
     <body>
