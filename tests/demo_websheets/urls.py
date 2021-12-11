@@ -15,11 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tests.demo.views import BookResource, MySheetView
+from tests.demo.views import BookResource, CategoryResource, MySheetView
 from websheets.views import WebSheetView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('test1/', MySheetView.as_view()),
-    path('test2/', WebSheetView.as_view(resource_class=BookResource)),
+    path('test2/', WebSheetView.as_view(sheet_resource_classes=[BookResource, CategoryResource])),
 ]

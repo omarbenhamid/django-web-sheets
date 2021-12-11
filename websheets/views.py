@@ -2,16 +2,39 @@ from django.views.generic.base import TemplateView
 import json
 from django.http.response import HttpResponseNotAllowed, JsonResponse
 import tablib
+from django.utils.functional import cached_property
+from collections import OrderedDict
+from import_export.resources import Resource
+from inspect import isclass
 
 
 class WebSheetView(TemplateView):
     template_name="websheets/spreadsheet.html"
-    resource_class=None
+    sheet_resource_classes=[] #List of class or tuple ("sheetName","class")
     allow_save=True
+    
+    def get_sheet_resource_classes(self):
+        return self.sheet_resource_classes
+    
+    def get_queryset(self, sheetname, resource):
+        return resource.get_queryset()
+    
+    @cached_property
+    def _sheet_resources(self):
+        ret=OrderedDict()
+        for rc in self.get_sheet_resource_classes():
+            if isclass(rc) and issubclass(rc, Resource): #This is a resource class
+                ret[rc.__name__]=rc()
+            if hasattr(rc, '__len__') and len(rc) == 2:
+                n,c=rc
+                ret[n]=c()
+            else:
+                raise Exception("sheet_resource_classes can be either a Resource class or (name,ResourceClass) tuple")
+        return ret
 
-    def _get_sheets_json(self, res=None):
-        if not res: res=self.resource_class()
-        return {"sheet 0": res.export().csv};
+    def _get_sheets_json(self):
+        return OrderedDict((name, res.export().csv)
+                for name, res in self._sheet_resources.items())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -25,10 +48,9 @@ class WebSheetView(TemplateView):
         if not self.allow_save:
             return HttpResponseNotAllowed(['GET'])
 
-        res=self.resource_class()
-
         errors={}
         for k,v in self.request.POST.items():
+            res=self._sheet_resources[k]
             ds=tablib.import_set(v, format='csv')
             result=res.import_data(ds, dry_run=True)
             if result.has_errors():
@@ -48,9 +70,9 @@ class WebSheetView(TemplateView):
         if not errors:
             for k,v in self.request.POST.items():
                 ds=tablib.import_set(v, format='csv')
-                res.import_data(ds, dry_run=False)
+                self._sheet_resources[k].import_data(ds, dry_run=False)
             
-            return JsonResponse(self._get_sheets_json(res))
+            return JsonResponse(self._get_sheets_json())
         else:
             return JsonResponse(errors, status=500)
 
