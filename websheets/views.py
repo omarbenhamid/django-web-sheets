@@ -35,8 +35,16 @@ class WebSheetView(TemplateView):
         creation is not supported
         """
         return None
+    
+    def handle_missing_sheet_onsave(self, sheetname, resource):
+        """ Handle the case where a sheet is absent on save """
+        pass
+    
     @cached_property
     def _sheet_resources(self):
+        return self._get_sheet_resources()
+    
+    def _get_sheet_resources(self):
         ret=OrderedDict()
         for rc in self.get_sheet_resource_classes():
             if hasattr(rc, '__len__') and len(rc) == 2:
@@ -109,8 +117,11 @@ class WebSheetView(TemplateView):
             for k,v in self.request.POST.items():
                 ds=tablib.import_set(v, format='csv')
                 sheet_resources[k].import_data(ds, dry_run=False)
+            for k,v in self._sheet_resources.items():
+                if k not in self.request.POST:
+                    self.handle_missing_sheet_onsave(k, v)
             
-            return JsonResponse(self._get_sheets_json(sheet_resources))
+            return JsonResponse(self._get_sheets_json(self._get_sheet_resources()))
         else:
             return JsonResponse(errors, status=500)
 
