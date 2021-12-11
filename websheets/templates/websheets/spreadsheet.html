@@ -1,0 +1,15 @@
+{% load static %}
+<html>
+    <head>
+        <link rel="stylesheet" href="{% static 'xspreadsheet/xspreadsheet.css' %}">
+        <script src="{% static 'xspreadsheet/xspreadsheet.js' %}"></script>
+        
+    </head>
+    <body>
+        <div id="xspreadsheet"></div>
+        
+        <script>
+           x_spreadsheet('#xspreadsheet');
+        </script>
+    </body>
+</html>

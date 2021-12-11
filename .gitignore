@@ -1,0 +1,5 @@
+db.sqlite3
+tmp
+__pycache__
+.project
+.pydevproject
