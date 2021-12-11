@@ -3,3 +3,4 @@ tmp
 __pycache__
 .project
 .pydevproject
+django_web_sheets.egg-info
