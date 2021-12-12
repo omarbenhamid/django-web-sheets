@@ -10,10 +10,28 @@
            const hideIdCol = {{ hide_id_col }};
            const csrf_token="{{ csrf_token }}";
         </script>
+        <style>
+#message {
+    display: block;
+    position: absolute;
+    top: 0px;
+    color: white;
+    padding: 1em 3em;
+    margin: 1em;
+    right: 10;
+    background-color: lightblue;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 1.5em;
+    font-style: italic;
+    border-radius: 1em;
+    box-shadow: lightgrey 3px 3px 8px;
+}
+        </style>
     </head>
     <body>
         <div id="xspreadsheet"></div>
-        
+        <div id="message" style="display:none"></div>
         <script src="{% static 'websheets/websheets.js' %}"></script>
     </body>
 </html>

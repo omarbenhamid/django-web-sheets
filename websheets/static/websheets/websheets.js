@@ -1,4 +1,17 @@
-1
+const messageEl=document.getElementById("message");
+var tiIdx;
+
+function message(html, timeout) {
+    if(html) {
+        messageEl.innerHTML=html;
+        messageEl.style.display='block';
+    } else {
+        messageEl.style.display='none';
+    }
+    if(tiIdx) clearTimeout(tiIdx);
+    if(timeout)
+        tiIdx=setTimeout(() => message(), timeout)
+}
 
 function parseCSV(csv) {
     var records = CSV.parse(csv, {header: false});
@@ -75,13 +88,13 @@ function postData(params){
     http.onreadystatechange = function() {//Call a function when the state changes.
         if(http.readyState == 4) {
             if (http.status == 200) {
-                alert("Saved");
+                message("Saved", 2000);
                 const currSheet = xs.getActiveSheet().name;
                 loadData(xs, JSON.parse(http.responseText));
                 const si = xs.getSheetIndex(currSheet);
                 if(si >= 0) xs.activateSheet(si)
             }else{
-                alert("Error saving !, Smehli");
+                message("Error saving ! Smehli", 3000);
                 //TODO: better rendendering of validation errors
                 errors=JSON.parse(http.responseText);
                 console.log(errors);
@@ -105,6 +118,7 @@ function postData(params){
         }
     }
     http.send(urlEncodedDataPairs.join("&"));
+    message("Saving ...");
 }
 
 function serialize(xsdata) {
