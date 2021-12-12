@@ -76,14 +76,21 @@ function postData(params){
         if(http.readyState == 4) {
             if (http.status == 200) {
                 alert("Saved");
+                const currSheet = xs.getActiveSheet().name;
                 loadData(xs, JSON.parse(http.responseText));
+                const si = xs.getSheetIndex(currSheet);
+                if(si >= 0) xs.activateSheet(si)
             }else{
                 alert("Error saving !, Smehli");
                 //TODO: better rendendering of validation errors
                 errors=JSON.parse(http.responseText);
                 console.log(errors);
                 for(var sheet in errors) {
-                    var sheetIndex=0; //!?
+                    var sheetIndex=xs.getSheetIndex(sheet);
+                    if(sheetIndex < 0) {
+                        console.log("Should never happen: sheet not found", sheet);
+                        continue;
+                    }
                     w=params[sheet]['width']
                     xs.cellText(0,w,'Validation Errors',sheetIndex)
                     xs.cell(0,w,sheetIndex).style=0;
