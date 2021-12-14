@@ -112,6 +112,16 @@ class WebSheetView(TemplateView):
                             errors[k][rownum].extend(str(p) for p in e.error)
                         else:
                             errors[k][rownum].append(str(e.error))
+            if result.has_validation_errors():
+                if k not in errors:
+                    errors[k]={}
+                for ir in result.invalid_rows:
+                    rownum=ir.number
+                    if rownum not in errors[k]: errors[k][rownum]=[]
+                    for ek,ev in ir.error.message_dict.items():
+                        for em in ev:
+                            errors[k][rownum].append("%s: %s" % (ek,em))
+            
 
         if not errors:
             for k,v in self.request.POST.items():
