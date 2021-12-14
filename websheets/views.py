@@ -6,6 +6,9 @@ from django.utils.functional import cached_property
 from collections import OrderedDict
 from import_export.resources import Resource
 from inspect import isclass
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class WebSheetView(TemplateView):
@@ -40,6 +43,20 @@ class WebSheetView(TemplateView):
         """ Handle the case where a sheet is absent on save """
         pass
     
+    def get_sheet_format(self, sheetname):
+        """
+        Override this to return a DICT of format options for the sheet (compliant with
+        x-spreadsheet)
+        """
+        pass
+    
+    def update_sheet_format(self, sheetname, formatjson):
+        """
+        Override this when new sheet format is received for update. This usually 
+        boils down to saving the data somehow.
+        """
+        pass
+    
     @cached_property
     def _sheet_resources(self):
         return self._get_sheet_resources()
@@ -68,7 +85,10 @@ class WebSheetView(TemplateView):
 
     def _get_sheets_json(self, sheet_resources=None):
         if not sheet_resources: sheet_resources=self._sheet_resources
-        return OrderedDict((name, res.export(self.get_queryset(name, res)).csv)
+        return OrderedDict((name, {
+            'data': res.export(self.get_queryset(name, res)).csv,
+            'format': self.get_sheet_format(name) or {}
+        })
                 for name, res in sheet_resources.items())
 
     def get_context_data(self, **kwargs):
@@ -86,7 +106,12 @@ class WebSheetView(TemplateView):
 
         errors={}
         sheet_resources=dict(self._sheet_resources)
-        for k,v in self.request.POST.items():
+        sheet_data=dict((k[8:],v) for k,v in self.request.POST.items()\
+            if k.startswith('__data__'))
+        sheet_formats=dict((k[10:],v) for k,v in self.request.POST.items()\
+            if k.startswith('__format__'))
+        
+        for k,v in sheet_data.items():
             res=sheet_resources.get(k,None)
             if not res:
                 res=self.get_resource_for_new_sheet(k)
@@ -124,13 +149,20 @@ class WebSheetView(TemplateView):
             
 
         if not errors:
-            for k,v in self.request.POST.items():
+            for k,v in sheet_data.items():
                 ds=tablib.import_set(v, format='csv')
                 sheet_resources[k].import_data(ds, dry_run=False)
             for k,v in self._sheet_resources.items():
-                if k not in self.request.POST:
+                if k not in sheet_data.keys():
                     self.handle_missing_sheet_onsave(k, v)
-            
+            for k,v in sheet_formats.items():
+                try:
+                    fjson=json.loads(v)
+                except:
+                    logger.warn("Ignoring misformatted format string")
+                    logger.debug("Traceback:", exc_info=True)
+                    continue
+                self.update_sheet_format(k, fjson)
             return JsonResponse(self._get_sheets_json(self._get_sheet_resources()))
         else:
             return JsonResponse(errors, status=500)

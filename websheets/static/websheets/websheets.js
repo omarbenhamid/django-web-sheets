@@ -35,7 +35,7 @@ function loadData(xs, csvdatajson) {
     var data=[];
 
     for(var key in csvdatajson) {
-        var records=parseCSV(csvdatajson[key]);
+        var records=parseCSV(csvdatajson[key].data);
         var sheet={
             name: key, 
             styles: [
@@ -65,6 +65,12 @@ function loadData(xs, csvdatajson) {
                 }
             }
         }
+        
+        for(var sk in csvdatajson[key].format) {
+            if(sk == 'rows') continue;
+            sheet[sk]=csvdatajson[key].format[sk];
+        }
+        
         data.push(sheet);
     }
     
@@ -78,7 +84,12 @@ function postData(params){
     // Turn the data object into an array of URL-encoded key/value pairs.
     let urlEncodedData = "", urlEncodedDataPairs = [], name;
     for( name in params ) {
-     urlEncodedDataPairs.push(encodeURIComponent(name)+'='+encodeURIComponent(params[name]['data']));
+     urlEncodedDataPairs.push("__data__"+encodeURIComponent(name)+'='
+        +encodeURIComponent(params[name].data));
+    }
+    for( name in params ) {
+     urlEncodedDataPairs.push("__format__"+encodeURIComponent(name)+'='
+        +encodeURIComponent(JSON.stringify(params[name].format)));
     }
     
     var http = new XMLHttpRequest();
@@ -151,9 +162,17 @@ function serialize(xsdata) {
             if(l > w) w=l;
         }
             
-        ret[s['name']]={
+        
+        ret[s.name]={
             data:CSV.serialize(records),
-            width: w
+            width: w,
+            format: {
+                autofilter:s.autofilter, 
+                cols:s.cols, 
+                freeze:s.freeze, 
+                merges:s.merges, 
+                validations:s.validations 
+            }
         }
     }
     return ret;
