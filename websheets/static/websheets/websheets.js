@@ -69,6 +69,8 @@ function loadData(xs, csvdatajson) {
     }
     
     xs.loadData(data);
+    message("Saved");
+    dirty=false;
 }
 
 
@@ -88,13 +90,12 @@ function postData(params){
     http.onreadystatechange = function() {//Call a function when the state changes.
         if(http.readyState == 4) {
             if (http.status == 200) {
-                message("Saved", 2000);
                 const currSheet = xs.getActiveSheet().name;
                 loadData(xs, JSON.parse(http.responseText));
                 const si = xs.getSheetIndex(currSheet);
                 if(si >= 0) xs.activateSheet(si)
             }else{
-                message("Error saving ! Smehli", 3000);
+                message("<span style='color:red'>Saving errors</span>");
                 //TODO: better rendendering of validation errors
                 errors=JSON.parse(http.responseText);
                 console.log(errors);
@@ -118,7 +119,7 @@ function postData(params){
         }
     }
     http.send(urlEncodedDataPairs.join("&"));
-    message("Saving ...");
+    message("<i>Saving ...</i>");
 }
 
 function serialize(xsdata) {
@@ -178,16 +179,36 @@ if(allowSave) {
           tip: 'Save',
           icon: saveIcon,
           onClick: (data, sheet) => {
-            console.log('click save button：', data, sheet)
-            var xsdata=xs.getData();
-            postData(serialize(xsdata));
-
+            postData(serialize(xs.getData()));
           }
         }
     );
 }
 
 var xs=x_spreadsheet('#xspreadsheet', opts);
+var dirty=false;
+xs.change(data => {
+    message("<span style='color:red'>Unsaved</span>");
+    dirty=true;
+});
 loadData(xs, csvdata)
 
+// Save with control S
+window.onkeydown=(function(event) { 
+    if ((event.ctrlKey || event.metaKey) && (String.fromCharCode(event.which).toLowerCase() == 's')) {
+            event.preventDefault();
+            postData(serialize(xs.getData()));
+    }
+});
 
+window.onbeforeunload = function(e){
+    if(dirty) {
+        // Cancel the event
+        e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+        // Chrome requires returnValue to be set
+        e.returnValue='';
+    }else{
+        delete e['returnValue'];
+        return;
+    }
+};
