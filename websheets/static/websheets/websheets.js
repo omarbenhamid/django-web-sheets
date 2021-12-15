@@ -163,7 +163,7 @@ function serialize(xsdata) {
         }
             
         
-        ret[s.name]={
+        ret[s.name.trim()]={
             data:CSV.serialize(records),
             width: w,
             format: {
