@@ -7,6 +7,7 @@ from collections import OrderedDict
 from import_export.resources import Resource
 from inspect import isclass
 import logging
+import types
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,22 @@ class WebSheetView(TemplateView):
     template_name="websheets/spreadsheet.html"
     sheet_resource_classes=[] #List of class or tuple ("sheetName","class")
     allow_save=True
+    delete_empty_rows=False #Delete rows that contain only ids
     hide_id_col=False #Hide or keep id visible
+    
+    def __hook_apply_delete_empty_rows(self, res_instance):
+        if hasattr(res_instance, '__hooked__'): return
+        tmp = res_instance.for_delete
+        
+        def for_delete(self, row, instance):
+            if tmp(row,instance): return True
+            idfields=res_instance.get_import_id_fields()
+            for f,v in row.items():
+                if f not in idfields and v != '': return False
+            return True
+        res_instance.for_delete = types.MethodType(for_delete, res_instance)
+        res_instance.__hooked__ = True
+
     
     def get_allow_save(self):
         return self.allow_save
@@ -120,7 +136,9 @@ class WebSheetView(TemplateView):
                     continue
                 else:
                     sheet_resources[k]=res
-                
+            if self.delete_empty_rows:
+                self.__hook_apply_delete_empty_rows(res)
+            
             ds=tablib.import_set(v, format='csv')
             result=res.import_data(ds, dry_run=True)
             if result.has_errors():
