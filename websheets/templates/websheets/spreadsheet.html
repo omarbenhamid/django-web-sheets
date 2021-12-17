@@ -1,9 +1,11 @@
 {% load static %}
+<!DOCTYPE html>
 <html>
     <head>
         <link rel="stylesheet" href="{% static 'websheets/xspreadsheet/xspreadsheet.css' %}">
         <script src="{% static 'websheets/xspreadsheet/xspreadsheet.js' %}"></script>
         <script src="{% static 'websheets/csvjs/csv.min.js' %}"></script>
+        <script src="{% static 'websheets/websheets.js' %}"></script>
         <script>
            const csvdata = {{ json | safe }}; {# FIXME escape <, > and & #}
            const allowSave = {{ allow_save }};
@@ -23,11 +25,11 @@
     font-weight: bold;
     font-size: 1.5em;
 }
+
         </style>
     </head>
-    <body>
+    <body onload="loadWebsheet('xspreadsheet', 'message', csvdata, allowSave, hideIdCol)">
         <div id="xspreadsheet"></div>
         <div id="message" style="display:none"></div>
-        <script src="{% static 'websheets/websheets.js' %}"></script>
     </body>
 </html>

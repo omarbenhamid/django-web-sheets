@@ -1,4 +1,6 @@
-const messageEl=document.getElementById("message");
+function loadWebsheet(spreadSheetElId, messageElId, csvdata, allowSave, hideIdCol) {
+
+const messageEl=document.getElementById(messageElId);
 var tiIdx;
 
 function message(html, timeout) {
@@ -204,7 +206,7 @@ if(allowSave) {
     );
 }
 
-var xs=x_spreadsheet('#xspreadsheet', opts);
+var xs=x_spreadsheet('#'+spreadSheetElId, opts);
 var dirty=false;
 xs.change(data => {
     message("<span style='color:red'>Unsaved</span>");
@@ -231,3 +233,5 @@ window.onbeforeunload = function(e){
         return;
     }
 };
+
+}
