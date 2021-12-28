@@ -1,3 +1,10 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'websheets/xspreadsheet/xspreadsheet.css' %}">
+        <script src="{% static 'websheets/xspreadsheet/xspreadsheet.js' %}"></script>
+        <script src="{% static 'websheets/csvjs/csv.min.js' %}"></script>
+        <script src="{% static 'websheets/websheets.js' %}"></script>
+
+
 <input type="hidden" name="{{ inline_admin_formset.formset.prefix }}-csvdata" value=""/>
 {{ inline_admin_formset.formset.management_form }}
 
@@ -7,6 +14,7 @@
 <div id="{{ inline_admin_formset.formset.prefix }}-websheet"
     style="background: red; width: 100%; height: 200px;">
     {{ inline_admin_formset.formset.instance }} A </div>
+        
 <script>
     WebSheet("#{{ inline_admin_formset.formset.prefix }}", //CSV, //..., //?..)
     onsubmit() {

@@ -78,7 +78,7 @@ function loadData(xs, csvdatajson) {
     
     xs.loadData(data);
     message("Saved");
-    dirty=false;
+    ws.dirty=false;
 }
 
 
@@ -206,32 +206,27 @@ if(allowSave) {
     );
 }
 
+
+function save() {
+    postData(serialize(xs.getData()));
+}
+
 var xs=x_spreadsheet('#'+spreadSheetElId, opts);
-var dirty=false;
+
+var ws = {
+    xs: xs,
+    save: save,
+    dirty: false
+};
+
 xs.change(data => {
     message("<span style='color:red'>Unsaved</span>");
-    dirty=true;
-});
-loadData(xs, csvdata)
-
-// Save with control S
-window.onkeydown=(function(event) { 
-    if ((event.ctrlKey || event.metaKey) && (String.fromCharCode(event.which).toLowerCase() == 's')) {
-            event.preventDefault();
-            postData(serialize(xs.getData()));
-    }
+    ws.dirty=true;
 });
 
-window.onbeforeunload = function(e){
-    if(dirty) {
-        // Cancel the event
-        e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-        // Chrome requires returnValue to be set
-        e.returnValue='';
-    }else{
-        delete e['returnValue'];
-        return;
-    }
-};
+loadData(xs, csvdata);
+
+return ws;
+
 
 }

@@ -12,6 +12,35 @@
            const hideIdCol = {{ hide_id_col }};
            const csrf_token="{{ csrf_token }}";
         </script>
+        <script>
+
+
+function load() {
+    var ws=loadWebsheet('xspreadsheet', 'message', csvdata, allowSave, hideIdCol);
+    if(allowSave) {
+        // Save with control S
+        window.onkeydown=(function(event) { 
+            if ((event.ctrlKey || event.metaKey) && (String.fromCharCode(event.which).toLowerCase() == 's')) {
+                    event.preventDefault();
+                    ws.save();
+            }
+        });
+        window.onbeforeunload = function(e){
+            if(ws.dirty) {
+                // Cancel the event
+                e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+                // Chrome requires returnValue to be set
+                e.returnValue='';
+            }else{
+                delete e['returnValue'];
+                return;
+            }
+        };
+    }
+    
+
+}
+        </script>
         <style>
 #message {
     display: block;
@@ -28,7 +57,7 @@
 
         </style>
     </head>
-    <body onload="loadWebsheet('xspreadsheet', 'message', csvdata, allowSave, hideIdCol)">
+    <body onload="load()">
         <div id="xspreadsheet"></div>
         <div id="message" style="display:none"></div>
     </body>
