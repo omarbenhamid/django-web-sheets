@@ -16,7 +16,7 @@
 
 
 function load() {
-    var ws=loadWebsheet('xspreadsheet', 'message', csvdata, allowSave, hideIdCol);
+    var ws=Websheet('xspreadsheet', 'message', csvdata, allowSave, hideIdCol);
     if(allowSave) {
         // Save with control S
         window.onkeydown=(function(event) { 
