@@ -1,0 +1,18 @@
+<input type="hidden" name="{{ inline_admin_formset.formset.prefix }}-csvdata" value=""/>
+{{ inline_admin_formset.formset.management_form }}
+
+<h2>{{ inline_admin_formset.opts.verbose_name_plural|capfirst }}</h2>
+{{ inline_admin_formset.formset.non_form_errors }}
+
+<div id="{{ inline_admin_formset.formset.prefix }}-websheet"
+    style="background: red; width: 100%; height: 200px;">
+    {{ inline_admin_formset.formset.instance }} A </div>
+<script>
+    WebSheet("#{{ inline_admin_formset.formset.prefix }}", //CSV, //..., //?..)
+    onsubmit() {
+        wite the csv in the idden
+    }
+</script>
+
+
+
