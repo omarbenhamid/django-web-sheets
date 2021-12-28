@@ -12,14 +12,19 @@
 {{ inline_admin_formset.formset.non_form_errors }}
 
 <div id="{{ inline_admin_formset.formset.prefix }}-websheet"
-    style="background: red; width: 100%; height: 200px;">
-    {{ inline_admin_formset.formset.instance }} A </div>
+    style="width: 100%; height: 200px;">
+    <!--{{ inline_admin_formset.formset.instance }} A --></div>
         
 <script>
-    WebSheet("#{{ inline_admin_formset.formset.prefix }}", //CSV, //..., //?..)
-    onsubmit() {
-        wite the csv in the idden
-    }
+    var id='{{ inline_admin_formset.formset.prefix }}-websheet';
+    var el=el=document.getElementById(id);
+    var ws=Websheet(id, 'message', 
+    "", false, true, {
+        view:{
+            width: () => {return el.clientWidth;},
+            height: () => {return el.clientHeight;}
+        }
+    });
 </script>
 
 
