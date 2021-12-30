@@ -4,6 +4,7 @@ function Websheet(spreadSheetElId, messageElId, csvdata, allowSave, hideIdCol, e
     var tiIdx;
     
     function message(html, timeout) {
+        if(! messageEl) return;
         if(html) {
             messageEl.innerHTML=html;
             messageEl.style.display='block';
@@ -218,6 +219,8 @@ function Websheet(spreadSheetElId, messageElId, csvdata, allowSave, hideIdCol, e
     var ws = {
         xs: xs,
         save: save,
+        load: function(csv){loadData(xs,csv);},
+        data: function(){return serialize(xs.getData());},
         dirty: false
     };
     

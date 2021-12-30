@@ -4,7 +4,7 @@
         <script src="{% static 'websheets/csvjs/csv.min.js' %}"></script>
         <script src="{% static 'websheets/websheets.js' %}"></script>
 
-<input type="hidden" name="{{ inline_admin_formset.formset.prefix }}-csvdata" value=""/>
+<input type="hidden" name="{{ inline_admin_formset.formset.prefix }}-csvdata" value="{{inline_admin_formset.formset.ascsv}}"/>
 {{ inline_admin_formset.formset.management_form }}
 
 <h2>{{ inline_admin_formset.opts.verbose_name_plural|capfirst }}</h2>
@@ -14,10 +14,15 @@
     style="width: 100%; height: {{ inline_admin_formset.formset.inline.get_css_height }};">
     <!--{{ inline_admin_formset.formset.instance }} A --></div>
 <script>
+(function() {
     var id='{{ inline_admin_formset.formset.prefix }}-websheet';
-    var el=el=document.getElementById(id);
+    var el=document.getElementById(id);
+    
+    var dataName='{{ inline_admin_formset.formset.prefix }}-csvdata';
+    var dataEl=document.getElementsByName(dataName)[0];
+    
     var ws=Websheet(id, 'message', 
-    "", false, true, {
+    {'sheet':{data:dataEl.getAttribute('value')}}, false, false, {
         showToolbar: false,
         showBottomBar: false,
         view:{
@@ -25,6 +30,10 @@
             height: () => {return el.clientHeight;}
         }
     });
+    window.addEventListener('submit',function(){
+        dataEl.setAttribute('value',ws.data()['sheet'].data)
+    })
+})()
 </script>
 
 

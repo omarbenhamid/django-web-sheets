@@ -29,3 +29,8 @@ class Book(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Papers(models.Model):
+    name = models.CharField('Book name', max_length=100)
+    author = models.ForeignKey(Author, blank=True, null=True, on_delete=CASCADE)
+    
