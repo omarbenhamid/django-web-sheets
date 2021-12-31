@@ -112,28 +112,48 @@ function Websheet(spreadSheetElId, messageElId, csvdata, allowSave, hideIdCol, e
                     message("<span style='color:red'>Saving errors</span>");
                     //TODO: better rendendering of validation errors
                     errors=JSON.parse(http.responseText);
-                    console.log(errors);
                     for(var sheet in errors) {
-                        var sheetIndex=xs.getSheetIndex(sheet);
-                        if(sheetIndex < 0) {
-                            console.log("Should never happen: sheet not found", sheet);
-                            continue;
-                        }
-                        w=params[sheet]['width']
-                        xs.cellText(0,w,'Validation Errors',sheetIndex)
-                        xs.cell(0,w,sheetIndex).style=0;
-                        
-                        for(var row in errors[sheet]) {
-                            xs.cellText(row,w,errors[sheet][row].join('\r\n'),sheetIndex)
-                            xs.cell(row,w,sheetIndex).style=0;
-                        }
+                        showErrors(sheet, errors[sheet], params[sheet]['width']);
                     }
-                    xs.reRender();
                 }
             }
         }
         http.send(urlEncodedDataPairs.join("&"));
         message("<i>Saving ...</i>");
+    }
+    
+    function showErrors(sheet, errors, w){
+        var sheetIndex=xs.getSheetIndex(sheet);
+        if(sheetIndex < 0) {
+            console.log("Should never happen: sheet not found", sheet);
+            return;
+        }
+        if(! w) {
+            w=0;
+            var s=xs.getData()[sheetIndex]
+                
+            for(var ri in s.rows) {
+                var cells=s.rows[ri].cells
+                for(var ci in cells) {
+                    if(cells[ci].style == 0) {
+                        xs.cellText(ri,ci,'',sheetIndex);
+                        continue;
+                    }
+                    ci=parseInt(ci);
+                    if(w < ci) w=ci;
+                }
+             }
+            w=w+1;
+        }
+        
+        xs.cellText(0,w,'Validation Errors',sheetIndex)
+        xs.cell(0,w,sheetIndex).style=0;
+            
+        for(var row in errors) {
+            xs.cellText(row,w,errors[row].join('\r\n'),sheetIndex)
+            xs.cell(row,w,sheetIndex).style=0;
+        }
+        xs.reRender();
     }
     
     function serialize(xsdata) {
@@ -218,10 +238,11 @@ function Websheet(spreadSheetElId, messageElId, csvdata, allowSave, hideIdCol, e
     
     var ws = {
         xs: xs,
+        dirty: false,
         save: save,
         load: function(csv){loadData(xs,csv);},
         data: function(){return serialize(xs.getData());},
-        dirty: false
+        errors: showErrors
     };
     
     xs.change(data => {

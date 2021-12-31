@@ -4,7 +4,9 @@
         <script src="{% static 'websheets/csvjs/csv.min.js' %}"></script>
         <script src="{% static 'websheets/websheets.js' %}"></script>
 
-<input type="hidden" name="{{ inline_admin_formset.formset.prefix }}-csvdata" value="{{inline_admin_formset.formset.ascsv}}"/>
+<input type="hidden" name="{{ inline_admin_formset.formset.prefix }}-csvdata" 
+    value="{{inline_admin_formset.formset.csvdata}}"
+    data-import-errors="{{inline_admin_formset.formset.import_errors_json}}"/>
 {{ inline_admin_formset.formset.management_form }}
 
 <h2>{{ inline_admin_formset.opts.verbose_name_plural|capfirst }}</h2>
@@ -15,13 +17,13 @@
     <!--{{ inline_admin_formset.formset.instance }} A --></div>
 <script>
 (function() {
-    var id='{{ inline_admin_formset.formset.prefix }}-websheet';
-    var el=document.getElementById(id);
+    let id='{{ inline_admin_formset.formset.prefix }}-websheet';
+    let el=document.getElementById(id);
     
-    var dataName='{{ inline_admin_formset.formset.prefix }}-csvdata';
-    var dataEl=document.getElementsByName(dataName)[0];
+    let dataName='{{ inline_admin_formset.formset.prefix }}-csvdata';
+    let dataEl=document.getElementsByName(dataName)[0];
     
-    var ws=Websheet(id, 'message', 
+    let ws=Websheet(id, 'message', 
     {'sheet':{data:dataEl.getAttribute('value')}}, false, false, {
         showToolbar: false,
         showBottomBar: false,
@@ -30,6 +32,12 @@
             height: () => {return el.clientHeight;}
         }
     });
+    
+    var importerrs=dataEl.getAttribute('data-import-errors');
+    if(importerrs) {
+        ws.errors('sheet',JSON.parse(importerrs));
+    }
+    
     window.addEventListener('submit',function(){
         dataEl.setAttribute('value',ws.data()['sheet'].data)
     })

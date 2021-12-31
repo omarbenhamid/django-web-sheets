@@ -141,6 +141,7 @@ class WebSheetView(TemplateView):
             
             ds=tablib.import_set(v, format='csv')
             result=res.import_data(ds, dry_run=True)
+            #FIXME: use core.collect_import_errors
             if result.has_errors():
                 if k not in errors:
                     errors[k]={}

@@ -14,7 +14,6 @@ class BookResource(ModelResource):
         model = Book
 
 class BookInline(WebSheetInlineModelAdmin):
-    #model=None
     resource_class=BookResource
 
 class PapersInline(WebSheetInlineModelAdmin):
