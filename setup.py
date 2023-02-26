@@ -11,8 +11,8 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__),
 
 requirements = [
     'django>=1.5',
-    'django-import-export==1.2.0',
-    'tablib==3.1.0'
+    'django-import-export>=1.2.0',
+    'tablib>=3.1.0'
 ]
 
 extras_require = {
